@@ -2,6 +2,7 @@ class Locker
   LOCKER_SIZES = ["SM","MD","LG"]
 
   def self.reserve(size)
+    return false unless LOCKER_SIZES.include?(size)
     if key = next_bucket(size)
       $redis.hset(size,key,true)
     else
@@ -20,7 +21,7 @@ class Locker
 
   private
 
-  #check sets for next size, return size or false if full
+  #check sets for next reservation, return key or false if full
   def self.next_bucket(size)
     index  = LOCKER_SIZES.index(size)
     length = LOCKER_SIZES.size

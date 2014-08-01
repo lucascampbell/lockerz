@@ -10,15 +10,24 @@ describe "Locker", "Get Set reservations" do
       end
     end
   end
-  it "should have locer sizes loaded" do 
+  it "should have locker sizes loaded" do 
      expect(Locker::LOCKER_SIZES).to match_array(["SM","MD","LG"])
   end
   
   it "should return key of reservation" do
     key = Locker.reserve('SM')
-    puts "key is #{key}"
     expect(key).not_to be_empty
     expect(key.size).to eq(25)
+  end
+
+  it "should return false unless size is SM MD LG" do 
+    key = Locker.reserve('WRONGSIZE')
+    expect(key).to eq(false)
+  end
+
+   it "should return false if reservation not found" do
+    key = Locker.checkout('SM:wrongkey')
+    expect(key).to eq(false)
   end
 
   it "should insert into SM buckets" do
@@ -50,11 +59,6 @@ describe "Locker", "Get Set reservations" do
     key2 = $redis.hget("LG",key1)
     expect(key2).to eq('false')
   end
-
-  it "should return false if bag not found" do
-    key = Locker.checkout('SM:wrongkey')
-    expect(key).to eq(false)
-  end
   
   #test takes a while, might want to use subset of total reservations
   it "should use MD if SM is full" do 
@@ -68,7 +72,7 @@ describe "Locker", "Get Set reservations" do
   end
 
   #test takes a while, might want to use subset of total reservations
-  it "should use MD if SM is full" do 
+  it "should use LG if MD is full" do 
     1000.times{|i| Locker.reserve('SM')}
     1000.times{|i| Locker.reserve('MD')}
 
@@ -80,7 +84,7 @@ describe "Locker", "Get Set reservations" do
   end
 
   #test takes a while, might want to use subset of total reservations
-  it "should use MD if SM is full" do 
+  it "should return false if full" do 
     1000.times{|i| Locker.reserve('SM')}
     1000.times{|i| Locker.reserve('MD')}
     1000.times{|i| Locker.reserve('LG')}
@@ -91,7 +95,5 @@ describe "Locker", "Get Set reservations" do
     sm_key = $redis.hgetall('LG').detect{|key,value| value=='false'}
     expect(sm_key).to be_nil
   end
-
-
 
 end
